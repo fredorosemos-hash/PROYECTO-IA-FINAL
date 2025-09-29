@@ -75,8 +75,35 @@ function initializeApp() {
     if (fileLabel) {
         fileLabel.addEventListener('click', function() {
             console.log('🖱️ Click en label detectado');
+            
+            // Pequeño delay para asegurar que el archivo se seleccione
+            setTimeout(() => {
+                if (fileInput.files.length > 0) {
+                    console.log('📁 Archivos detectados después del click, procesando...');
+                    const event = { target: fileInput };
+                    handleFileSelect(event);
+                }
+            }, 200);
         });
     }
+    
+    // Event listener adicional como fallback
+    document.addEventListener('change', function(event) {
+        if (event.target.id === 'csvFileInput') {
+            console.log('🎯 Change detectado en csvFileInput vía document');
+            handleFileSelect(event);
+        }
+    });
+    
+    // Botón de prueba temporal
+    const testLoadBtn = document.getElementById('testLoadBtn');
+    if (testLoadBtn) {
+        testLoadBtn.addEventListener('click', function() {
+            console.log('🧪 Cargando archivo de prueba...');
+            loadTestData();
+        });
+    }
+    
     processBtn.addEventListener('click', processDataWithAI);
     generateReportBtn.addEventListener('click', generateCompleteReport);
     
@@ -111,6 +138,133 @@ function animateText() {
         };
         
         typeWriter();
+    }
+}
+
+// Función para cargar datos de prueba
+async function loadTestData() {
+    console.log('=== CARGA DE DATOS DE PRUEBA EMBEBIDOS ===');
+    
+    const fileList = document.getElementById('fileList');
+    const processBtn = document.getElementById('processBtn');
+    
+    fileList.innerHTML = '<div style="color: #ffaa44; margin: 10px 0;">⏳ Cargando datos de prueba embebidos...</div>';
+    
+    try {
+        // Datos de ejemplo embebidos directamente en el código
+        const csvDataText = `delito,ciudad,fecha,cantidad,departamento
+Hurto a personas,Medellín,2024-01-15,25,Antioquia
+Homicidio,Bello,2024-01-15,3,Antioquia
+Extorsión,Itagüí,2024-01-15,8,Antioquia
+Hurto a residencias,Envigado,2024-01-15,12,Antioquia
+Lesiones personales,Sabaneta,2024-01-15,15,Antioquia
+Hurto a personas,Medellín,2024-02-15,28,Antioquia
+Homicidio,Bello,2024-02-15,4,Antioquia
+Extorsión,Itagüí,2024-02-15,12,Antioquia
+Hurto a residencias,Envigado,2024-02-15,10,Antioquia
+Lesiones personales,Sabaneta,2024-02-15,18,Antioquia
+Violencia intrafamiliar,Medellín,2024-02-15,22,Antioquia
+Hurto a comercio,Bello,2024-02-15,9,Antioquia
+Hurto a personas,Medellín,2024-03-15,35,Antioquia
+Homicidio,Bello,2024-03-15,2,Antioquia
+Extorsión,Itagüí,2024-03-15,15,Antioquia
+Hurto a residencias,Envigado,2024-03-15,14,Antioquia
+Lesiones personales,Sabaneta,2024-03-15,20,Antioquia
+Violencia intrafamiliar,Medellín,2024-03-15,25,Antioquia
+Hurto a comercio,Bello,2024-03-15,11,Antioquia
+Estafa,Medellín,2024-03-15,18,Antioquia
+Hurto a personas,Medellín,2024-04-15,32,Antioquia
+Homicidio,Bello,2024-04-15,5,Antioquia
+Extorsión,Itagüí,2024-04-15,10,Antioquia
+Hurto a residencias,Envigado,2024-04-15,16,Antioquia
+Lesiones personales,Sabaneta,2024-04-15,19,Antioquia
+Violencia intrafamiliar,Medellín,2024-04-15,28,Antioquia
+Hurto a comercio,Bello,2024-04-15,13,Antioquia
+Estafa,Medellín,2024-04-15,21,Antioquia
+Narcotráfico,Medellín,2024-04-15,7,Antioquia
+Hurto a vehículos,Bello,2024-04-15,6,Antioquia`;
+
+        console.log('Datos embebidos cargados:', csvDataText.length, 'caracteres');
+        
+        // Procesar con Papa Parse directamente
+        Papa.parse(csvDataText, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: function(results) {
+                console.log('✅ Datos de prueba embebidos procesados:', results);
+                
+                if (results.data && results.data.length > 0) {
+                    csvData = results.data;
+                    
+                    fileList.innerHTML = `
+                        <div style="color: #00ff41; background: rgba(0,255,65,0.1); padding: 1.5rem; border-radius: 10px; border: 2px solid #00ff41; margin: 1rem 0;">
+                            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                <i class="fas fa-database" style="font-size: 2rem; margin-right: 1rem; color: #00ff41;"></i>
+                                <div>
+                                    <h3 style="margin: 0; color: #00ff41;">✅ DATOS DE PRUEBA CARGADOS</h3>
+                                    <p style="margin: 0.5rem 0 0 0; color: #b8b8b8;">Sistema listo para análisis de IA</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                                <div style="background: rgba(0,255,65,0.1); padding: 0.8rem; border-radius: 8px; border: 1px solid #00ff41;">
+                                    <strong style="color: #00ff41;">📊 Registros:</strong><br>
+                                    <span style="font-size: 1.2rem; font-weight: bold;">${results.data.length}</span>
+                                </div>
+                                <div style="background: rgba(0,255,65,0.1); padding: 0.8rem; border-radius: 8px; border: 1px solid #00ff41;">
+                                    <strong style="color: #00ff41;">📋 Columnas:</strong><br>
+                                    <span style="font-size: 1.2rem; font-weight: bold;">${Object.keys(results.data[0]).length}</span>
+                                </div>
+                                <div style="background: rgba(0,255,65,0.1); padding: 0.8rem; border-radius: 8px; border: 1px solid #00ff41;">
+                                    <strong style="color: #00ff41;">🏙️ Ciudades:</strong><br>
+                                    <span style="font-size: 1.2rem; font-weight: bold;">${[...new Set(results.data.map(row => row.ciudad))].length}</span>
+                                </div>
+                                <div style="background: rgba(0,255,65,0.1); padding: 0.8rem; border-radius: 8px; border: 1px solid #00ff41;">
+                                    <strong style="color: #00ff41;">🚨 Delitos:</strong><br>
+                                    <span style="font-size: 1.2rem; font-weight: bold;">${[...new Set(results.data.map(row => row.delito))].length}</span>
+                                </div>
+                            </div>
+                            
+                            <details style="margin-top: 1rem;">
+                                <summary style="cursor: pointer; color: #00ff41; font-weight: bold;">🔍 Ver detalles de los datos</summary>
+                                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                                    <p><strong>Columnas:</strong> ${Object.keys(results.data[0]).join(', ')}</p>
+                                    <p><strong>Ciudades:</strong> ${[...new Set(results.data.map(row => row.ciudad))].join(', ')}</p>
+                                    <p><strong>Primer registro:</strong></p>
+                                    <pre style="font-size: 0.9em; background: rgba(0,0,0,0.5); padding: 0.5rem; border-radius: 3px; overflow-x: auto;">${JSON.stringify(results.data[0], null, 2)}</pre>
+                                </div>
+                            </details>
+                        </div>
+                    `;
+                    
+                    processBtn.disabled = false;
+                    processBtn.style.background = '#00ff41';
+                    processBtn.style.color = '#000';
+                    processBtn.style.fontWeight = 'bold';
+                    processBtn.innerHTML = '🚀 PROCESAR DATOS CON IA';
+                    
+                    console.log(`✅ Total de datos cargados: ${csvData.length} registros`);
+                    console.log('Muestras de datos:', csvData.slice(0, 3));
+                } else {
+                    throw new Error('No se encontraron datos válidos en los datos embebidos');
+                }
+            },
+            error: function(error) {
+                console.error('Error al procesar datos embebidos:', error);
+                throw error;
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Error al cargar datos de prueba:', error);
+        fileList.innerHTML = `
+            <div style="color: #ff4444; background: rgba(255,68,68,0.1); padding: 1rem; border-radius: 8px; border: 2px solid #ff4444;">
+                <h4 style="margin-bottom: 0.5rem;">❌ Error al cargar datos de prueba</h4>
+                <p>${error.message}</p>
+                <p style="margin-top: 0.5rem; font-style: italic;">Verifique que Papa Parse esté cargado correctamente.</p>
+            </div>
+        `;
     }
 }
 
